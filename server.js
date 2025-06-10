@@ -281,18 +281,20 @@ app.post('/api/bookings', async (req, res) => {
 
 // Get All Bookings (Protected)
 app.get('/api/bookings', authenticateToken, async (req, res) => {
-    try {
-        const result = await pool.query(
-            'SELECT b.*, t.name AS tutor_name FROM bookings b JOIN tutors t ON b.tutor_id = t.id ORDER BY b.created_at DESC'
-        );
-        console.log('Bookings found:', result.rows);
-        res.status(200).json(result.rows);
-    } catch (error) {
-        console.error('Error fetching bookings:', error.message);
-        res.status(500).json({ error: 'Error fetching bookings' });
-    }
-});
-
+        try {
+            const result = await pool.query(
+                'SELECT b.*, t.name AS tutor_name FROM bookings b JOIN tutors t ON b.tutor_id = t.id ORDER BY b.created_at DESC'
+            );
+            console.log('Bookings found:', result.rows);
+            if (result.rows.length === 0) {
+                console.log('No bookings found');
+            }
+            res.status(200).json(result.rows);
+        } catch (error) {
+            console.error('Error fetching bookings:', error.stack);
+            res.status(500).json({ error: 'Error fetching bookings: ' + error.message });
+        }
+    });
 // Delete Booking (Protected)
 app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
     try {
