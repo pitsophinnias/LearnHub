@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (notification.type === 'booking') {
         await loadBookings(); // Refresh bookings on new booking
+        await loadContacts();
     }
     showNotification(notification); 
 };
