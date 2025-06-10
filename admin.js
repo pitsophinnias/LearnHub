@@ -80,17 +80,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and display bookings
     async function loadBookings() {
-        try {
-            const response = await fetch('/api/bookings', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+    try {
+        const response = await fetch('/api/bookings', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin_login.html';
+            return;
+        }
+        const bookings = await response.json();
+        console.log('Bookings data:', bookings); 
+        const bookingTable = document.getElementById('booking-table');
+        bookingTable.innerHTML = `
+            <tr><th>ID</th><th>Tutor</th><th>Subject</th><th>User Number</th><th>Schedule</th><th>Created At</th><th>Action</th></tr>
+        `;
+        if (bookings.length === 0) {
+            bookingTable.innerHTML += '<tr><td colspan="7">No bookings found</td></tr>';
+        } else {
+            bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${booking.id}</td><td>${booking.tutor_name || 'N/A'}</td><td>${booking.subject}</td><td>${booking.user_number}</td>
+                    <td>${new Date(booking.schedule).toLocaleString()}</td><td>${new Date(booking.created_at).toLocaleString()}</td>
+                    <td><button class="delete-btn" data-type="booking" data-id="${booking.id}">Delete</button></td>
+                `;
+                bookingTable.appendChild(row);
             });
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem('adminToken');
-                window.location.href = 'admin_login.html';
-                return;
-            }
+        }
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+    }
+}
             const bookings = await response.json();
             const bookingTable = document.getElementById('booking-table');
             bookingTable.innerHTML = `
@@ -186,5 +207,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load initial data
     loadContacts();
-    loadBookings();
+    ();
 });
