@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('WebSocket connected');
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
     const notification = JSON.parse(event.data);
     console.log('Received notification:', notification);
     if (notification.isBrowserNotification) {
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     if (notification.type === 'booking') {
-        loadBookings(); // Refresh bookings on new booking
+        await loadBookings(); // Refresh bookings on new booking
     }
     showNotification(notification); 
 };
@@ -52,46 +52,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and display contacts
     async function loadContacts() {
-        try {
-            const response = await fetch('/api/contacts', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem('adminToken');
-                window.location.href = 'admin_login.html';
-                return;
-            }
-            const contacts = await response.json();
-            const contactTable = document.getElementById('contact-table');
-            contactTable.innerHTML = `
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Number</th>
-                    <th>Message</th>
-                    <th>Created At</th>
-                    <th>Action</th>
-                </tr>
-            `;
+    try {
+        const response = await fetch('/api/contact', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin_login.html';
+            return;
+        }
+        const contacts = await response.json();
+        console.log('Contacts data:', contacts);
+        const contactTable = document.getElementById('contact-table'); // Ensure this ID exists
+        contactTable.innerHTML = `
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Number</th>
+                <th>Message</th>
+                <th>Created At</th>
+                <th>Action</th>
+            </tr>
+        `;
+        if (contacts.length === 0) {
+            contactTable.innerHTML += '<tr><td colspan="6">No contacts found</td></tr>';
+        } else {
             contacts.forEach(contact => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${contact.id}</td>
-                    <td>${contact.name}</td>
-                    <td>${contact.number}</td>
-                    <td>${contact.message}</td>
+                    <td>${contact.id}</td><td>${contact.name}</td><td>${contact.number}</td><td>${contact.message}</td>
                     <td>${new Date(contact.created_at).toLocaleString()}</td>
-                    <td><button class="delete-btn" data-type="contact" data-id="${contact.number}">Delete</button></td>
+                    <td><button class="delete-btn" data-type="contact" data-id="${contact.id}">Delete</button></td>
                 `;
                 contactTable.appendChild(row);
             });
-        } catch (error) {
-            console.error('Error loading contacts:', error);
         }
+    } catch (error) {
+        console.error('Error loading contacts:', error);
     }
-
+}
     // Fetch and display bookings
     async function loadBookings() {
     try {
@@ -107,7 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Bookings data:', bookings); 
         const bookingTable = document.getElementById('booking-table');
         bookingTable.innerHTML = `
-            <tr><th>ID</th><th>Tutor</th><th>Subject</th><th>User Number</th><th>Schedule</th><th>Created At</th><th>Action</th></tr>
+            <tr>
+                <th>ID</th>
+                <th>Tutor</th>
+                <th>Subject</th>
+                <th>User Number</th>
+                <th>Schedule</th>
+                <th>Created At</th>
+                <th>Action</th>
+            </tr>
         `;
         if (bookings.length === 0) {
             bookingTable.innerHTML += '<tr><td colspan="7">No bookings found</td></tr>';
