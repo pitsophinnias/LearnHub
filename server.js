@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // JWT Secret (store in environment variable in production)
 const JWT_SECRET = 'your_jwt_secret_key'; // Change to a secure key
@@ -316,4 +316,6 @@ app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
 });
 
 // Start the server
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT,'0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+});
