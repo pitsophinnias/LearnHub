@@ -23,10 +23,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     ws.onmessage = (event) => {
-        const notification = JSON.parse(event.data);
-        console.log('Received notification:', notification);
-        showNotification(notification);
-    };
+    const notification = JSON.parse(event.data);
+    console.log('Received notification:', notification);
+    if (notification.isBrowserNotification) {
+        if ('Notification' in window && Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    new Notification(notification.message);
+                }
+            });
+        } else if (Notification.permission === 'granted') {
+            new Notification(notification.message);
+        }
+    }
+    if (notification.type === 'booking') {
+        loadBookings(); // Refresh bookings on new booking
+    }
+    showNotification(notification); 
+};
 
     ws.onerror = (error) => {
         console.error('WebSocket error:', error);
