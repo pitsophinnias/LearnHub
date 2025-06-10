@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnHub</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>LearnHub</h1>
+            <p>Connecting Students with expert tutors</p>
+            <a href="admin_login.html" class="admin-login-btn">Admin Login</a>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#subjects">Subjects</a></li>
+                <li><a href="#steps">How It Works</a></li>
+                <li><a href="#contact">Contact</a></li>
+                
+            </ul>
+        </div>
+    </nav>
+
+    <section id="hero">
+        <div class="container">
+            <h2>Find the perfect tutor for your needs</h2>
+            <p>Get personalized 1-on-1 tutoring in your chosen subject</p>
+            <a href="#subjects" class="btn">Browse Subjects</a>
+        </div>
+    </section>
+
+    <section id="subjects" class="subjects-section">
+        <div class="container">
+            <h2>Our Tutoring Subjects</h2>
+            <p>Select a subject to find available tutors</p>
+            <div class="subjects-grid">
+                <div class="subject-card" data-subject="mathematics">
+                    <i class="fas fa-calculator"></i>
+                    <h3>Mathematics</h3>
+                    <p>Let everything add up</p>
+                    <button class="select-btn">Select</button>
+                </div>
+                <div class="subject-card" data-subject="physics">
+                    <i class="fas fa-atom"></i>
+                    <h3>Physics</h3>
+                    <p>Understand the laws that govern our universe</p>
+                    <button class="select-btn">Select</button>
+                </div>
+                <div class="subject-card" data-subject="chemistry">
+                    <i class="fas fa-flask"></i>
+                    <h3>Chemistry</h3>
+                    <p>Master elements, compounds, and reactions</p>
+                    <button class="select-btn">Select</button>
+                </div>
+                <div class="subject-card" data-subject="biology">
+                    <i class="fas fa-leaf"></i>
+                    <h3>Biology</h3>
+                    <p>Explore the science of life and living organisms</p>
+                    <button class="select-btn">Select</button>
+                </div>
+                <div class="subject-card" data-subject="english">
+                    <i class="fas fa-book"></i>
+                    <h3>English Literature</h3>
+                    <p>Analyze texts and improve your writing skills</p>
+                    <button class="select-btn">Select</button>
+                </div>
+                <div class="subject-card" data-subject="ict">
+                    <i class="fas fa-laptop-code"></i>
+                    <h3>ICT</h3>
+                    <p>Information and Communication Technology skills</p>
+                    <button class="select-btn">Select</button>
+                </div>
+                <div class="subject-card" data-subject="design">
+                    <i class="fas fa-drafting-compass"></i>
+                    <h3>Design & Technology</h3>
+                    <p>Creative problem-solving and technical skills</p>
+                    <button class="select-btn">Select</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="calendar" class="calendar-section">
+        <div class="container">
+            <h2>Exam Calendar</h2>
+            <div class="countdown-container">
+                <h3>Time until Next Exam (<span id="next-exam-date"></span>)</h3>
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <span id="days">00</span>
+                        <small>Days</small>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="hours">00</span>
+                        <small>Hours</small>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="minutes">00</span>
+                        <small>Minutes</small>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="seconds">00</span>
+                        <small>Seconds</small>
+                    </div>
+                </div>
+            </div>
+            <div class="exam-schedule">
+                <div class="calendar">
+                    <div class="month-header">
+                        <button id="prev-month">◄</button>
+                        <h3 id="current-month"></h3>
+                        <button id="next-month">►</button>
+                    </div>
+                    <div class="weekdays">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div class="days" id="calendar-days"></div>
+                </div>
+                <div class="exam-subjects">
+                    <h4>Upcoming Exams</h4>
+                    <ul id="exam-list"></ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="steps" class="steps-section">
+        <div class="container">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Choose Your Subject</h3>
+                    <p>Select from our wide range of academic subjects.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Pick Your Tutor</h3>
+                    <p>Browse profiles and select a tutor that matches your needs.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Schedule Your Session</h3>
+                    <p>Choose a time that works for you and start learning.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>Contact Us</h2>
+            <form id="contact-form">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="number">Mobile Number:</label>
+                    <input type="tel" id="number" name="number" required pattern="\+?[0-9]{8,15}" title="Enter a valid phone number">
+                </div>
+                <div class="form-group">
+                    <label for="message">Message:</label>
+                    <textarea id="message" required></textarea>
+                </div>
+                <button type="submit" class="btn">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <div id="tutorModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">×</span>
+        <h2 id="modalTitle">Select Your Tutor</h2>
+        <div id="tutor-list"></div>
+        <div class="form-group">
+            <label for="schedule">Preferred Schedule:</label>
+            <input type="datetime-local" id="schedule" required>
+        </div>
+        <button id="confirmBookingBtn" class="btn">Confirm Booking</button>
+    </div>
+</div>
+    <footer>
+        <div class="container">
+            <p>© 2025 LearnHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnHub Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="container">
+        <section class= "logout-section">
+            <button id="logout-btn" class="btn">Log Out</button>
+        </section>
+        <section>
+            <h2>Bookings</h2>
+            <table id="booking-table">
+                <tr>
+                    <th>ID</th>
+                    <th>Tutor</th>
+                    <th>Subject</th>
+                    <th>User Number</th>
+                    <th>Schedule</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+            </table>
+        </section>
+        <section>
+            <h2>Contact Messages</h2>
+            <table id="contact-table">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Number</th>
+                    <th>Message</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+            </table>
+        </section>
+    </main>
+    <script src="admin.js"></script>
+</body>
+</html>
