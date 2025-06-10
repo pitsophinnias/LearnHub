@@ -36,11 +36,12 @@ const authenticateToken = (req, res, next) => {
 
 // PostgreSQL Connection
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'learnhub',
-    password: 'phinnias27',
-    port: 5432,
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'learnhub',
+    password: process.env.DB_PASSWORD || 'phinnias27',
+    port: process.env.DB_PORT || 5432,
+    connectionString: process.env.DATABASE_URL || 'postgres://postgres:phinnias27@localhost:5432/learnhub',
 });
 
 pool.connect((err, client, release) => {
