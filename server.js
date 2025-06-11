@@ -245,20 +245,23 @@ app.delete('/api/contacts/:number', authenticateToken, async (req, res) => {
 // Get Tutors by Subject
 app.get('/api/tutors/:subject', async (req, res) => {
     try {
-        const subject = req.params.subject.toLowerCase();
-        console.log('Fetching tutors for:', subject);
-        const result = await pool.query('SELECT * FROM tutors WHERE subjects ? $1', [subject]);
+        const subject = req.params.subject; 
+        console.log('Fetching tutors for subject:', subject);
+        
+        const result = await pool.query(
+            `SELECT * FROM tutors WHERE EXISTS (
+                SELECT 1 FROM jsonb_array_elements(subjects) AS s
+                WHERE s->>'value' ILIKE $1 OR s::text ILIKE $1
+            )`,
+            [subject]
+        );
         console.log('Tutors found:', result.rows);
-        if (result.rows.length === 0) {
-            console.log(`No tutors found for subject: ${subject}`);
-        }
         res.status(200).json(result.rows);
     } catch (error) {
-        console.error('Error fetching tutors:', error.message);
-        res.status(500).json({ error: 'Error fetching tutors' });
+        console.error('Error fetching tutors:', error.message, error.stack);
+        res.status(500).json({ error: 'Error fetching tutors', details: error.message });
     }
 });
-
 // Create Booking
 app.post('/api/bookings', async (req, res) => {
     try {
