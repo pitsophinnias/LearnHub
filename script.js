@@ -6,6 +6,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const tutorList = document.getElementById('tutor-list');
     const confirmBookingBtn = document.getElementById('confirmBookingBtn');
     const contactForm = document.getElementById('contact-form');
+    const nav = document.getElementById('main-nav');
+    const navMenu = document.getElementById('nav-menu');
+    const menuToggle = document.getElementById('menu-toggle');
+    const ws = new WebSocket(`ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}`);
+
+    ws.onopen = () => {
+        console.log('WebSocket connected on index');
+    };
+
+    ws.onmessage = (event) => {
+        const notification = JSON.parse(event.data);
+        console.log('Received notification on index:', notification);
+        if (notification.isBrowserNotification) {
+            if ('Notification' in window && Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        new Notification(notification.message);
+                    }
+                });
+            } else if (Notification.permission === 'granted') {
+                new Notification(notification.message);
+            }
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error on index:', error);
+    };
+
+    ws.onclose = () => {
+        console.log('WebSocket disconnected on index');
+    };
+
     let currentSubject = '';
 
     // Debug DOM elements
@@ -24,6 +57,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Navigation menu toggle
+    let isSideMenu = false;
+    let lastScrollTop = 0;
+    const navHeight = nav.offsetHeight;
+
+    menuToggle.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+        nav.classList.toggle('active');
+    });
+
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > navHeight && !isSideMenu) {
+            nav.classList.add('side-menu');
+            isSideMenu = true;
+            navMenu.classList.remove('active');
+        } else if (scrollTop <= navHeight && isSideMenu) {
+            nav.classList.remove('side-menu');
+            isSideMenu = false;
+            navMenu.classList.remove('active');
+        }
+
+        lastScrollTop = scrollTop;
+    });
 
     // Add click event to select buttons
     document.querySelectorAll('.select-btn').forEach(btn => {
@@ -89,47 +147,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Show tutors for a subject
     async function showTutors(subject) {
-    currentSubject = subject;
-    console.log('Fetching tutors for:', subject);
-    try {
-        const response = await fetch(`/api/tutors/${subject}`);
-        console.log('Fetch response:', response);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        currentSubject = subject;
+        console.log('Fetching tutors for:', subject);
+        try {
+            const response = await fetch(`/api/tutors/${subject}`);
+            console.log('Fetch response:', response);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const subjectTutors = await response.json();
+            console.log('Tutors received:', subjectTutors);
+            modalTitle.textContent = `Select Your ${subject.charAt(0).toUpperCase() + subject.slice(1)} Tutor`;
+            tutorList.innerHTML = '';
+            if (!subjectTutors || subjectTutors.length === 0) {
+                console.log('No tutors found for subject:', subject);
+                tutorList.innerHTML = '<p>No tutors available for this subject at the moment.</p>';
+            } else {
+                subjectTutors.forEach(tutor => {
+                    console.log('Rendering tutor:', tutor.name);
+                    const tutorCard = document.createElement('div');
+                    tutorCard.className = 'tutor-card';
+                    tutorCard.innerHTML = `
+                        <img src="${tutor.image || 'default-tutor.png'}" alt="${tutor.name}">
+                        <div class="tutor-info">
+                            <h4>${tutor.name}</h4>
+                            <p>${tutor.experience}</p>
+                        </div>
+                        <div class="tutor-rating">
+                            <i class="fas fa-star"></i> ${tutor.rating}
+                        </div>
+                        <input type="radio" name="tutor" value="${tutor.id}">
+                    `;
+                    tutorList.appendChild(tutorCard);
+                });
+            }
+            modal.style.display = 'block';
+        } catch (error) {
+            console.error('Error fetching tutors:', error);
+            tutorList.innerHTML = '<p>Error loading tutors. Please try again later.</p>';
+            modal.style.display = 'block';
         }
-        const subjectTutors = await response.json();
-        console.log('Tutors received:', subjectTutors);
-        modalTitle.textContent = `Select Your ${subject.charAt(0).toUpperCase() + subject.slice(1)} Tutor`;
-        tutorList.innerHTML = '';
-        if (!subjectTutors || subjectTutors.length === 0) {
-            console.log('No tutors found for subject:', subject);
-            tutorList.innerHTML = '<p>No tutors available for this subject at the moment.</p>';
-        } else {
-            subjectTutors.forEach(tutor => {
-                console.log('Rendering tutor:', tutor.name);
-                const tutorCard = document.createElement('div');
-                tutorCard.className = 'tutor-card';
-                tutorCard.innerHTML = `
-                    <img src="${tutor.image || 'default-tutor.png'}" alt="${tutor.name}">
-                    <div class="tutor-info">
-                        <h4>${tutor.name}</h4>
-                        <p>${tutor.experience}</p>
-                    </div>
-                    <div class="tutor-rating">
-                        <i class="fas fa-star"></i> ${tutor.rating}
-                    </div>
-                    <input type="radio" name="tutor" value="${tutor.id}">
-                `;
-                tutorList.appendChild(tutorCard);
-            });
-        }
-        modal.style.display = 'block';
-    } catch (error) {
-        console.error('Error fetching tutors:', error);
-        tutorList.innerHTML = '<p>Error loading tutors. Please try again later.</p>';
-        modal.style.display = 'block';
     }
-}
+
     // Confirm booking
     if (confirmBookingBtn) {
         confirmBookingBtn.addEventListener('click', async () => {
@@ -359,6 +418,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     top: targetElement.offsetTop - 70,
                     behavior: 'smooth'
                 });
+                if (isSideMenu) {
+                    navMenu.classList.remove('active');
+                    nav.classList.remove('active');
+                }
             }
         });
     });

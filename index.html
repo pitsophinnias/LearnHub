@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LearnHub</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <header>
         <div class="container">
             <h1>LearnHub</h1>
             <p>Connecting Students with expert tutors</p>
-            <a href="admin_login.html" class="admin-login-btn">Admin Login</a>
         </div>
     </header>
 
-    <nav>
+    <nav id="main-nav">
         <div class="container">
-            <ul>
-                <li><a href="#hero">Home</a></li>
-                <li><a href="#subjects">Subjects</a></li>
-                <li><a href="#steps">How It Works</a></li>
+            <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul id="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#subject">Subjects</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#contact">Contact</a></li>
-                
             </ul>
         </div>
     </nav>
@@ -32,52 +33,52 @@
         <div class="container">
             <h2>Find the perfect tutor for your needs</h2>
             <p>Get personalized 1-on-1 tutoring in your chosen subject</p>
-            <a href="#subjects" class="btn">Browse Subjects</a>
+            <a href="#apply" class="btn">Browse Subjects</a>
         </div>
     </section>
 
-    <section id="subjects" class="subjects-section">
+    <section id="subject" class="subjects-section">
         <div class="container">
             <h2>Our Tutoring Subjects</h2>
             <p>Select a subject to find available tutors</p>
             <div class="subjects-grid">
-                <div class="subject-card" data-subject="mathematics">
+                <div class="subject-card" data-subject="Mathematics">
                     <i class="fas fa-calculator"></i>
                     <h3>Mathematics</h3>
                     <p>Let everything add up</p>
                     <button class="select-btn">Select</button>
                 </div>
-                <div class="subject-card" data-subject="physics">
+                <div class="subject-card" data-subject="Physics">
                     <i class="fas fa-atom"></i>
                     <h3>Physics</h3>
                     <p>Understand the laws that govern our universe</p>
                     <button class="select-btn">Select</button>
                 </div>
-                <div class="subject-card" data-subject="chemistry">
+                <div class="subject-card" data-subject="Chemistry">
                     <i class="fas fa-flask"></i>
                     <h3>Chemistry</h3>
                     <p>Master elements, compounds, and reactions</p>
                     <button class="select-btn">Select</button>
                 </div>
-                <div class="subject-card" data-subject="biology">
-                    <i class="fas fa-leaf"></i>
+                <div class="subject-card" data-subject="Biology">
+                    <i class="fas fa-dna"></i>
                     <h3>Biology</h3>
                     <p>Explore the science of life and living organisms</p>
                     <button class="select-btn">Select</button>
                 </div>
-                <div class="subject-card" data-subject="english">
+                <div class="subject-card" data-subject="English">
                     <i class="fas fa-book"></i>
                     <h3>English Literature</h3>
                     <p>Analyze texts and improve your writing skills</p>
                     <button class="select-btn">Select</button>
                 </div>
-                <div class="subject-card" data-subject="ict">
+                <div class="subject-card" data-subject="ICT">
                     <i class="fas fa-laptop-code"></i>
                     <h3>ICT</h3>
                     <p>Information and Communication Technology skills</p>
                     <button class="select-btn">Select</button>
                 </div>
-                <div class="subject-card" data-subject="design">
+                <div class="subject-card" data-subject="Design">
                     <i class="fas fa-drafting-compass"></i>
                     <h3>Design & Technology</h3>
                     <p>Creative problem-solving and technical skills</p>
@@ -89,7 +90,6 @@
 
     <section id="calendar" class="calendar-section">
         <div class="container">
-            <h2>Exam Calendar</h2>
             <div class="countdown-container">
                 <h3>Time until Next Exam (<span id="next-exam-date"></span>)</h3>
                 <div class="countdown">
@@ -111,6 +111,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="exam-schedule">
                 <div class="calendar">
                     <div class="month-header">
@@ -119,7 +120,13 @@
                         <button id="next-month">►</button>
                     </div>
                     <div class="weekdays">
-                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        <div>Sun</div>
+                        <div>Mon</div>
+                        <div>Tue</div>
+                        <div>Wed</div>
+                        <div>Thu</div>
+                        <div>Fri</div>
+                        <div>Sat</div>
                     </div>
                     <div class="days" id="calendar-days"></div>
                 </div>
@@ -131,7 +138,7 @@
         </div>
     </section>
 
-    <section id="steps" class="steps-section">
+    <section id="how-it-works" class="steps-section">
         <div class="container">
             <h2>How It Works</h2>
             <div class="steps">
@@ -164,7 +171,7 @@
                 </div>
                 <div class="form-group">
                     <label for="number">Mobile Number:</label>
-                    <input type="tel" id="number" name="number" required pattern="\+?[0-9]{8,15}" title="Enter a valid phone number">
+                    <input type="tel" id="number" required>
                 </div>
                 <div class="form-group">
                     <label for="message">Message:</label>
@@ -175,23 +182,30 @@
         </div>
     </section>
 
-    <div id="tutorModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">×</span>
-        <h2 id="modalTitle">Select Your Tutor</h2>
-        <div id="tutor-list"></div>
-        <div class="form-group">
-            <label for="schedule">Preferred Schedule:</label>
-            <input type="datetime-local" id="schedule" required>
-        </div>
-        <button id="confirmBookingBtn" class="btn">Confirm Booking</button>
-    </div>
-</div>
+    <section class="admin-login-section container">
+        <a href="admin_login.html" class="btn admin-login-btn" title="Admin Login">
+            <i class="fas fa-user-shield"></i>
+        </a>
+    </section>
+
     <footer>
         <div class="container">
             <p>© 2025 LearnHub. All rights reserved.</p>
         </div>
     </footer>
+
+    <div id="tutorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">×</span>
+            <h2 id="modalTitle">Select Your Tutor</h2>
+            <div id="tutor-list"></div>
+            <div class="form-group">
+                <label for="schedule">Preferred Schedule:</label>
+                <input type="datetime-local" id="schedule">
+            </div>
+            <button id="confirmBookingBtn" class="btn">Confirm Booking</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

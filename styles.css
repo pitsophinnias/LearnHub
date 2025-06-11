@@ -67,6 +67,11 @@ nav {
     position: sticky;
     top: 0;
     z-index: 100;
+    transition: all 0.3s ease;
+}
+
+nav .container {
+    position: relative;
 }
 
 nav ul {
@@ -85,6 +90,51 @@ nav ul li a {
 
 nav ul li a:hover {
     background: var(--primary-color);
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+nav.side-menu {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100%;
+    background: var(--dark-color);
+    z-index: 1000;
+    transition: left 0.3s ease;
+}
+
+nav.side-menu.active {
+    left: 0;
+}
+
+nav.side-menu ul {
+    flex-direction: column;
+    padding-top: 60px;
+}
+
+nav.side-menu ul li a {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav.side-menu .menu-toggle {
+    display: block;
+    position: absolute;
+    top: 15px;
+    left: 15px;
 }
 
 /* Hero Section */
