@@ -1,3 +1,4 @@
+<script lang="text/javascript">
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -6,12 +7,11 @@ const WebSocket = require('ws');
 const http = require('http');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const app = express();
-const PORT = process.env.PORT || 3000;
+const jwt = express();
+const PORT = process.env.PORT || 3000);
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key'; // Secure in production
-const DELETE_PASSWORD_HASH = '$2b$10$9k3Qz8J8k2j3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3'; // Hashed "phinnyonly"
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
+const DELETE_PASSWORD_HASH = '$2b$10$9k3Qz8J8k2j3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3';
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -32,26 +32,39 @@ const authenticateToken = (req, res, next) => {
 };
 
 const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'learnhub',
-    password: process.env.DB_PASSWORD || 'phinnias27',
-    port: process.env.DB_PORT || 5432,
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
 });
 
-pool.connect((err, client, release) => {
-    if (err) {
-        console.error('Database connection error:', err.stack);
-    } else {
-        console.log('Database connected successfully');
-        release();
+async function testDatabaseConnection() {
+    let retries = 5;
+    while (retries > 0) {
+        try {
+            const client = await pool.connect();
+            console.log('Database connected successfully');
+            await client.query('SELECT NOW()');
+            client.release();
+            return;
+        } catch (err) {
+            console.error(`Database connection attempt failed (${retries} retries left):`, err.message, err.stack);
+            retries--;
+            if (retries === 0) {
+                console.error('Failed to connect to database after retries');
+                process.exit(1);
+            }
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
     }
-});
+}
+
+testDatabaseConnection();
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Map to store admin WebSocket connections by admin ID
 const adminClients = new Map();
 
 wss.on('connection', (ws, req) => {
@@ -90,7 +103,6 @@ wss.on('error', (error) => {
     console.error('WebSocket server error:', error);
 });
 
-// Store all clients (for debugging)
 const clients = new Set();
 
 function broadcastNotification(type) {
@@ -115,7 +127,6 @@ function broadcastNotification(type) {
     console.log(`Notification sent to ${clientCount} admin clients`);
 }
 
-// Verify delete password endpoint
 app.post('/api/verify-delete-password', async (req, res) => {
     try {
         const { password } = req.body;
@@ -130,7 +141,6 @@ app.post('/api/verify-delete-password', async (req, res) => {
     }
 });
 
-// Admin Registration Endpoint
 app.post('/api/admin/register', async (req, res) => {
     try {
         const { tutorId, username, password } = req.body;
@@ -164,7 +174,6 @@ app.post('/api/admin/register', async (req, res) => {
     }
 });
 
-// Admin Login Endpoint
 app.post('/api/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -193,7 +202,6 @@ app.post('/api/admin/login', async (req, res) => {
     }
 });
 
-// Contact Form Endpoint
 app.post('/api/contact', async (req, res) => {
     try {
         const { name, number, message } = req.body;
@@ -211,7 +219,6 @@ app.post('/api/contact', async (req, res) => {
     }
 });
 
-// Get All Contact Messages (Protected)
 app.get('/api/contacts', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
@@ -223,7 +230,6 @@ app.get('/api/contacts', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete Contact (Protected)
 app.delete('/api/contacts/:number', authenticateToken, async (req, res) => {
     try {
         const { number } = req.params;
@@ -242,12 +248,10 @@ app.delete('/api/contacts/:number', authenticateToken, async (req, res) => {
     }
 });
 
-// Get Tutors by Subject
 app.get('/api/tutors/:subject', async (req, res) => {
     try {
-        const subject = req.params.subject; 
+        const subject = req.params.subject;
         console.log('Fetching tutors for subject:', subject);
-        
         const result = await pool.query(
             `SELECT * FROM tutors WHERE EXISTS (
                 SELECT 1 FROM jsonb_array_elements(subjects) AS s
@@ -262,7 +266,7 @@ app.get('/api/tutors/:subject', async (req, res) => {
         res.status(500).json({ error: 'Error fetching tutors', details: error.message });
     }
 });
-// Create Booking
+
 app.post('/api/bookings', async (req, res) => {
     try {
         const { tutorId, subject, userNumber, schedule } = req.body;
@@ -280,7 +284,6 @@ app.post('/api/bookings', async (req, res) => {
     }
 });
 
-// Get All Bookings (Protected)
 app.get('/api/bookings', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
@@ -294,7 +297,6 @@ app.get('/api/bookings', authenticateToken, async (req, res) => {
     }
 });
 
-// Delete Booking (Protected)
 app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -314,3 +316,4 @@ app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+</script>
