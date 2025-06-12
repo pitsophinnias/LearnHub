@@ -253,11 +253,9 @@ app.get('/api/tutors/:subject', async (req, res) => {
         const subject = req.params.subject.toLowerCase();
         console.log('Fetching tutors for subject:', subject);
         const result = await pool.query(
-            `SELECT * FROM tutors WHERE EXISTS (
-                SELECT 1 FROM jsonb_array_elements(subjects) AS s
-                WHERE s->>'value' ILIKE $1 OR s::text ILIKE $1
-            )`,
-            [[subject]]
+            `SELECT DISTINCT t.* FROM tutors t, jsonb_array_elements(t.subjects) AS s
+             WHERE s->>'value' ILIKE $1`,
+            [subject]
         );
         console.log('Tutors found:', result.rows);
         res.status(200).json(result.rows);
