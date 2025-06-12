@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSubject = subject;
         console.log('Fetching tutors for:', subject);
         try {
-            const response = await fetch(`/api/tutors/${subject}`);
+            const response = await fetch(`/api/tutors/${subject.toLowerCase()}`);
             console.log('Fetch response:', response);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
