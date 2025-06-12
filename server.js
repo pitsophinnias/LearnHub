@@ -250,14 +250,14 @@ app.delete('/api/contacts/:number', authenticateToken, async (req, res) => {
 
 app.get('/api/tutors/:subject', async (req, res) => {
     try {
-        const subject = req.params.subject;
+        const subject = req.params.subject.toLowerCase();
         console.log('Fetching tutors for subject:', subject);
         const result = await pool.query(
             `SELECT * FROM tutors WHERE EXISTS (
                 SELECT 1 FROM jsonb_array_elements(subjects) AS s
                 WHERE s->>'value' ILIKE $1 OR s::text ILIKE $1
             )`,
-            [subject]
+            [[subject]]
         );
         console.log('Tutors found:', result.rows);
         res.status(200).json(result.rows);
