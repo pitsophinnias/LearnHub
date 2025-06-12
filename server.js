@@ -1,4 +1,3 @@
-<script lang="text/javascript">
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
@@ -7,8 +6,9 @@ const WebSocket = require('ws');
 const http = require('http');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
-const jwt = express();
-const PORT = process.env.PORT || 3000);
+const jwt = require('jsonwebtoken');
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const DELETE_PASSWORD_HASH = '$2b$10$9k3Qz8J8k2j3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3';
@@ -316,4 +316,3 @@ app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
-</script>
