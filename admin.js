@@ -79,19 +79,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and display bookings
     async function fetchBookings() {
         try {
+            console.log('Fetching bookings with token:', token.substring(0, 10) + '...'); // Debug token (partial)
             const response = await fetch('/api/bookings', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (response.status === 401 || response.status === 403) {
+                console.log('Unauthorized or Forbidden response:', response.status);
+                const errorData = await response.json();
+                console.log('Error details:', errorData);
                 localStorage.removeItem('adminToken');
-                showNotification('Session expired. Please log in again.');
+                showNotification('Session expired or invalid token. Please log in again.');
                 window.location.href = 'admin_login.html';
                 return;
             }
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                console.log('Server error details:', errorData);
+                throw new Error(`HTTP error! status: ${response.status}, details: ${errorData.error || 'Unknown'}`);
             }
             const bookings = await response.json();
+            console.log('Bookings received:', bookings);
             const tbody = document.querySelector('#bookings-table tbody');
             tbody.innerHTML = '';
             if (!Array.isArray(bookings)) {
@@ -120,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification('Error fetching bookings: ' + error.message);
         }
     }
+
     // Fetch and display contacts
     async function fetchContacts() {
         try {
