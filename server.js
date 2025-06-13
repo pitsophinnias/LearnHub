@@ -8,21 +8,22 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key'; // Secure in production
-const DELETE_PASSWORD_HASH = '$2b$10$9k3Qz8J8k2j3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3'; // Hashed "phinnyonly"
+// JWT Secret (store in environment variable in production)
+const JWT_SECRET = 'your_jwt_secret_key'; // Change to a secure key
 
-//Middleware
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(express.static(path.join(__dirname, '.')));
 
-//authentication middleware
+// Authentication middleware
 const authenticateToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Access denied' });
+
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = decoded;
@@ -33,13 +34,13 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
-//PostgreSQL Connection
+// PostgreSQL Connection
 const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'learnhub',
-    password: process.env.DB_PASSWORD || 'phinnias27',
-    port: process.env.DB_PORT || 5432,
+    user: 'postgres',
+    host: 'localhost',
+    database: 'learnhub',
+    password: 'phinnias27',
+    port: 5432,
 });
 
 pool.connect((err, client, release) => {
@@ -51,41 +52,29 @@ pool.connect((err, client, release) => {
     }
 });
 
-//Create HTTP server and Websocket clients
+// Create HTTP server and WebSocket server
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Map to store admin WebSocket connections by admin ID
-const adminClients = new Map();
+// Store connected WebSocket clients
+const clients = new Set();
 
+// Handle WebSocket connections
 wss.on('connection', (ws, req) => {
     console.log(`WebSocket client connected from ${req.socket.remoteAddress}:${req.socket.remotePort}`);
-    ws.isAdmin = false;
-    ws.adminId = null;
+    clients.add(ws);
 
     ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
-        if (message.type === 'admin_login' && message.adminId) {
-            ws.isAdmin = true;
-            ws.adminId = message.adminId;
-            adminClients.set(message.adminId, ws);
-            console.log(`Admin ${message.adminId} registered with WebSocket`);
-        }
+        console.log('WebSocket message received:', data.toString());
     });
 
     ws.on('close', (code, reason) => {
         console.log(`WebSocket client disconnected: code=${code}, reason=${reason}`);
-        if (ws.isAdmin && ws.adminId) {
-            adminClients.delete(ws.adminId);
-        }
         clients.delete(ws);
     });
 
     ws.on('error', (error) => {
         console.error('WebSocket server error:', error);
-        if (ws.isAdmin && ws.adminId) {
-            adminClients.delete(ws.adminId);
-        }
         clients.delete(ws);
     });
 });
@@ -94,72 +83,49 @@ wss.on('error', (error) => {
     console.error('WebSocket server error:', error);
 });
 
-// Store all clients (for debugging)
-const clients = new Set();
-
-// Fnction to broadcast notifications
-function broadcastNotification(type) {
-    console.log('Broadcasting notification:', type);
+// Function to broadcast notifications
+function broadcastNotification(message) {
+    console.log('Broadcasting notification:', message);
     let clientCount = 0;
-    adminClients.forEach((ws, adminId) => {
-        if (ws.readyState === WebSocket.OPEN) {
+    clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
             try {
-                const notification = {
-                    type: type,
-                    message: type === 'booking' ? 'New booking' : type === 'contact' ? 'New message' : type.includes('deleted') ? `${type.replace('_deleted', '')} deleted` : 'Notification',
-                    isBrowserNotification: true
-                };
-                ws.send(JSON.stringify(notification));
+                client.send(JSON.stringify(message));
                 clientCount++;
             } catch (error) {
-                console.error(`Error sending to admin ${adminId}:`, error);
-                adminClients.delete(adminId);
+                console.error('Error sending to client:', error);
+                clients.delete(client);
             }
         }
     });
-    console.log(`Notification sent to ${clientCount} admin clients`);
+    console.log(`Notification sent to ${clientCount} clients`);
 }
-
-// Verify delete password endpoint
-app.post('/api/verify-delete-password', async (req, res) => {
-    try {
-        const { password } = req.body;
-        const isMatch = await bcrypt.compare(password, DELETE_PASSWORD_HASH);
-        if (!isMatch) {
-            return res.status(401).json({ error: 'Invalid delete password' });
-        }
-        res.status(200).json({ message: 'Password verified' });
-    } catch (error) {
-        console.error('Error verifying delete password:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
 
 // Admin Registration Endpoint
 app.post('/api/admin/register', async (req, res) => {
     try {
         const { tutorId, username, password } = req.body;
         console.log('Admin registration attempt:', { tutorId, username });
-		
-		// Validate tutor ID exists
+
+        // Validate tutor ID exists
         const tutorResult = await pool.query('SELECT id FROM tutors WHERE id = $1', [tutorId]);
         if (tutorResult.rows.length === 0) {
             console.log('Tutor not found:', tutorId);
             return res.status(400).json({ error: 'Invalid tutor ID' });
         }
-		
-		// Check if username alread exists
+
+        // Check if username already exists
         const existingUser = await pool.query('SELECT id FROM admin_users WHERE username = $1', [username]);
         if (existingUser.rows.length > 0) {
             console.log('Username already exists:', username);
             return res.status(400).json({ error: 'Username already exists' });
         }
-		
-		// Hash password
+
+        // Hash password
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
-		// Insert new admin user
+        // Insert new admin user
         const result = await pool.query(
             'INSERT INTO admin_users (tutor_id, username, password_hash) VALUES ($1, $2, $3) RETURNING id, username',
             [tutorId, username, passwordHash]
@@ -205,6 +171,7 @@ app.post('/api/admin/login', async (req, res) => {
 // Contact Form Endpoint
 app.post('/api/contact', async (req, res) => {
     try {
+        console.log('Raw request body:', req.body);
         const { name, number, message } = req.body;
         console.log('Received contact form:', { name, number, message });
         const result = await pool.query(
@@ -212,7 +179,11 @@ app.post('/api/contact', async (req, res) => {
             [name, number, message]
         );
         console.log('Contact saved:', result.rows[0]);
-        broadcastNotification('contact');
+        // Broadcast notification
+        broadcastNotification({
+            type: 'contact',
+            data: { id: result.rows[0].id, name, number, message, created_at: result.rows[0].created_at }
+        });
         res.status(200).json({ message: 'Message saved successfully', data: result.rows[0] });
     } catch (error) {
         console.error('Error saving message:', error.message);
@@ -243,7 +214,11 @@ app.delete('/api/contacts/:number', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Contact not found' });
         }
         console.log('Contact deleted:', result.rows[0]);
-        broadcastNotification('contact_deleted');
+        // Broadcast deletion notification
+        broadcastNotification({
+            type: 'contact_deleted',
+            data: { number }
+        });
         res.status(200).json({ message: 'Contact deleted successfully' });
     } catch (error) {
         console.error('Error deleting contact:', error.message);
@@ -281,7 +256,21 @@ app.post('/api/bookings', async (req, res) => {
             [tutorId, subject, userNumber, schedule]
         );
         console.log('Booking created:', result.rows[0]);
-        broadcastNotification('booking');
+        // Fetch tutor name for notification
+        const tutorResult = await pool.query('SELECT name FROM tutors WHERE id = $1', [tutorId]);
+        const tutorName = tutorResult.rows[0]?.name || 'Unknown Tutor';
+        // Broadcast notification
+        broadcastNotification({
+            type: 'booking',
+            data: {
+                id: result.rows[0].id,
+                tutor_name: tutorName,
+                subject,
+                user_number: userNumber,
+                schedule: result.rows[0].schedule,
+                created_at: result.rows[0].created_at
+            }
+        });
         res.status(200).json({ message: 'Booking created successfully', data: result.rows[0] });
     } catch (error) {
         console.error('Error creating booking:', error.message);
@@ -314,7 +303,11 @@ app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ error: 'Booking not found' });
         }
         console.log('Booking deleted:', result.rows[0]);
-        broadcastNotification('booking_deleted');
+        // Broadcast deletion notification
+        broadcastNotification({
+            type: 'booking_deleted',
+            data: { id }
+        });
         res.status(200).json({ message: 'Booking deleted successfully' });
     } catch (error) {
         console.error('Error deleting booking:', error.message);
@@ -322,4 +315,5 @@ app.delete('/api/bookings/:id', authenticateToken, async (req, res) => {
     }
 });
 
-server.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+// Start the server
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
