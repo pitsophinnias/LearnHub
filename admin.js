@@ -84,17 +84,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (response.status === 401 || response.status === 403) {
                 localStorage.removeItem('adminToken');
+                showNotification('Session expired. Please log in again.');
                 window.location.href = 'admin_login.html';
                 return;
+            }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             const bookings = await response.json();
             const tbody = document.querySelector('#bookings-table tbody');
             tbody.innerHTML = '';
+            if (!Array.isArray(bookings)) {
+                console.warn('Bookings response is not an array:', bookings);
+                showNotification('No bookings available.');
+                return;
+            }
+            if (bookings.length === 0) {
+                showNotification('No bookings found.');
+            }
             bookings.forEach(booking => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${booking.id}</td>
-                    <td>${booking.tutor_name}</td>
+                    <td>${booking.tutor_name || 'Unknown'}</td>
                     <td>${booking.subject}</td>
                     <td>${booking.user_number}</td>
                     <td>${new Date(booking.schedule).toLocaleString()}</td>
@@ -105,10 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error('Error fetching bookings:', error);
-            showNotification('Error fetching bookings');
+            showNotification('Error fetching bookings: ' + error.message);
         }
     }
-
     // Fetch and display contacts
     async function fetchContacts() {
         try {

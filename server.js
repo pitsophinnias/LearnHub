@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key'; // Secure in production
-//const DELETE_PASSWORD_HASH = '$2b$10$9k3Qz8J8k2j3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3'; // Hashed "phinnyonly"
+const DELETE_PASSWORD_HASH = '$2b$10$9k3Qz8J8k2j3m4n5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3'; // Hashed "phinnyonly"
 
 //Middleware
 app.use(cors());
@@ -286,13 +286,13 @@ app.post('/api/bookings', async (req, res) => {
 app.get('/api/bookings', authenticateToken, async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT b.*, t.name AS tutor_name FROM bookings b JOIN tutors t ON b.tutor_id = t.id ORDER BY b.created_at DESC'
+            'SELECT b.*, t.name AS tutor_name FROM bookings b LEFT JOIN tutors t ON b.tutor_id = t.id ORDER BY b.created_at DESC'
         );
         console.log('Bookings found:', result.rows);
-        res.status(200).json(result.rows);
+        res.status(200).json(result.rows || []);
     } catch (error) {
         console.error('Error fetching bookings:', error.message);
-        res.status(500).json({ error: 'Error fetching bookings' });
+        res.status(500).json({ error: 'Error fetching bookings', details: error.message });
     }
 });
 
